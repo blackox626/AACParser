@@ -14,6 +14,9 @@ int getADTSframe(unsigned char *buffer, int buf_size, unsigned char *data, int *
         if (buf_size < 7) {
             return -1;
         }
+
+        /// size : adtsframe的长度 包括 Sync words(同步字 0xFFF)
+
         //Sync words
         if ((buffer[0] == 0xff) && ((buffer[1] & 0xf0) == 0xf0)) {
             size |= ((buffer[3] & 0x03) << 11);     //high 2 bit
@@ -74,7 +77,9 @@ int simplest_aac_parser(char *url) {
             char profile_str[10] = {0};
             char frequence_str[10] = {0};
 
+            /// 1100 0000  C0
             unsigned char profile = aacframe[2] & 0xC0;
+            /// 前两位
             profile = profile >> 6;
             switch (profile) {
                 case 0:
@@ -90,8 +95,9 @@ int simplest_aac_parser(char *url) {
                     sprintf(profile_str, "unknown");
                     break;
             }
-
+            /// 0011 1100  3C
             unsigned char sampling_frequency_index = aacframe[2] & 0x3C;
+            /// 中间4位
             sampling_frequency_index = sampling_frequency_index >> 2;
             switch (sampling_frequency_index) {
                 case 0:
