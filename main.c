@@ -56,9 +56,9 @@ int simplest_aac_parser(char *url) {
         return -1;
     }
 
-    printf("-----+- ADTS Frame Table -+------+\n");
-    printf(" NUM | Profile | Frequency| Size |\n");
-    printf("-----+---------+----------+------+\n");
+    printf("------------------+- ADTS Frame Table -+-----------------------+\n");
+    printf(" NUM | Len | Profile | Frequency| Channel | Sample Count |Size |\n");
+    printf("-----+-----+---------+----------+---------+--------------+------\n");
 
     while (!feof(ifile)) {
         data_size = fread(aacbuffer + offset, 1, 1024 * 1024 - offset, ifile);
@@ -74,8 +74,17 @@ int simplest_aac_parser(char *url) {
                 break;
             }
 
+            char head_len_str[10] = {0};
+
             char profile_str[10] = {0};
             char frequence_str[10] = {0};
+
+            //当protection_absend为1时表示无crc, ADTS可变头长度 为28bit,为0时，可变头长度为44bit.
+            if((aacframe[1] & 0x01) == 0) {
+                sprintf(head_len_str,"len 9");
+            } else {
+                sprintf(head_len_str,"len 7");
+            }
 
             /// 1100 0000  C0
             unsigned char profile = aacframe[2] & 0xC0;
@@ -141,8 +150,23 @@ int simplest_aac_parser(char *url) {
                     break;
             }
 
+            /// channel_configuration: 表示声道数   0 是啥？
+            //0: Defined in AOT Specifc Config
+            //1: 1 channel: front-center
+            //2: 2 channels: front-left, front-right
+            //3: 3 channels: front-center, front-left, front-right
+            //4: 4 channels: front-center, front-left, front-right, back-center
+            //5: 5 channels: front-center, front-left, front-right, back-left, back-right
+            //6: 6 channels: front-center, front-left, front-right, back-left, back-right, LFE-channel
+            //7: 8 channels: front-center, front-left, front-right, side-left, side-right, back-left, back-right, LFE-channel
+            //8-15: Reserved
+            int channel_configuration = (aacframe[2] & 0x01) << 2 | (aacframe[3] & 0xC0 >> 6);
 
-            fprintf(myout, "%5d| %8s|  %8s| %5d|\n", cnt, profile_str, frequence_str, size);
+            int adts_buffer_fullness = ((aacframe[5] & 0x1F) << 6) | ((aacframe[6] & 0xFC) >> 2);        //low 3bit
+
+            int sample_count = (aacframe[6] & 0x03);
+
+            fprintf(myout, "%5d| %8s| %8s|  %8s| %5d| %5d| %5d|\n", cnt,head_len_str, profile_str, frequence_str,channel_configuration,sample_count, size);
             data_size -= size;
             input_data += size;
             cnt++;
@@ -157,7 +181,6 @@ int simplest_aac_parser(char *url) {
 }
 
 int main() {
-//    printf("Hello, World!\n");
 
     char *aacpath = "/Users/blackox626/CLionProjects/AACParser/resource/audio.aac";
     simplest_aac_parser(aacpath);
