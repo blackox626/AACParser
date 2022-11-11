@@ -151,7 +151,7 @@ int simplest_aac_parser(char *url) {
             }
 
             /// channel_configuration: 表示声道数   0 是啥？
-            //0: Defined in AOT Specifc Config
+            //0: Defined in AOT Specifc Config (Audio Object Type)
             //1: 1 channel: front-center
             //2: 2 channels: front-left, front-right
             //3: 3 channels: front-center, front-left, front-right
@@ -160,7 +160,7 @@ int simplest_aac_parser(char *url) {
             //6: 6 channels: front-center, front-left, front-right, back-left, back-right, LFE-channel
             //7: 8 channels: front-center, front-left, front-right, side-left, side-right, back-left, back-right, LFE-channel
             //8-15: Reserved
-            int channel_configuration = (aacframe[2] & 0x01) << 2 | (aacframe[3] & 0xC0 >> 6);
+            int channel_configuration = (aacframe[2] & 0x01) << 2 | (aacframe[3] & 0xC0) >> 6;
 
             int adts_buffer_fullness = ((aacframe[5] & 0x1F) << 6) | ((aacframe[6] & 0xFC) >> 2);        //low 3bit
 
