@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+///AAC格式简介
+/// https://blog.csdn.net/leixiaohua1020/article/details/84481195
 
 int getADTSframe(unsigned char *buffer, int buf_size, unsigned char *data, int *data_size) {
     int size = 0;
